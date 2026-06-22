@@ -15,12 +15,20 @@
           <!-- Header Per Hari -->
           <div class="bg-slate-800/80 p-4 border-b border-slate-700 flex justify-between items-center">
             <h3 class="font-bold text-lg text-emerald-300">{{ formatDateHeader(date) }}</h3>
-            <button @click="copySummary(date, items)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              {{ copiedDate === date ? 'Copied!' : 'Copy Summary' }}
-            </button>
+            <div class="flex gap-2">
+              <button @click="copyRows(date, items)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                {{ copiedRowsDate === date ? 'Copied Rows!' : 'Copy Rows' }}
+              </button>
+              <button @click="copySummary(date, items)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                {{ copiedDate === date ? 'Copied Summary!' : 'Copy Summary' }}
+              </button>
+            </div>
           </div>
 
           <!-- Table Per Hari -->
@@ -67,6 +75,7 @@ import dayjs from 'dayjs'
 
 const allData = ref([])
 const copiedDate = ref(null)
+const copiedRowsDate = ref(null)
 
 const fetchData = async () => {
   try {
@@ -126,6 +135,31 @@ Empty: ${totalEmpty}`
     await navigator.clipboard.writeText(summaryText)
     copiedDate.value = dateKey
     setTimeout(() => { copiedDate.value = null }, 2000)
+  } catch (err) {
+    alert('Failed to copy to clipboard!')
+  }
+}
+
+const copyRows = async (dateKey, items) => {
+  // Sort items by time ascending for row-by-row chronological view
+  const sortedItems = [...items].sort((a, b) => dayjs(a.createdAt).valueOf() - dayjs(b.createdAt).valueOf())
+  
+  if (sortedItems.length === 0) return
+
+  const formattedDate = dayjs(dateKey).format('DD/MM/YYYY')
+  
+  let rowsText = `${formattedDate} - Detail Laporan\n\n`
+  
+  sortedItems.forEach(item => {
+    const time = dayjs(item.createdAt).format('HH:mm')
+    const emptyStr = item.emptyQuantity !== null ? item.emptyQuantity : '-'
+    rowsText += `[${time}] Sender: ${item.senderName} | Receiver: ${item.receiverName} | Qty: ${item.quantity} | Empty: ${emptyStr}\n`
+  })
+
+  try {
+    await navigator.clipboard.writeText(rowsText)
+    copiedRowsDate.value = dateKey
+    setTimeout(() => { copiedRowsDate.value = null }, 2000)
   } catch (err) {
     alert('Failed to copy to clipboard!')
   }
