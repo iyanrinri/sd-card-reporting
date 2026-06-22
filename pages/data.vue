@@ -72,6 +72,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
+import 'dayjs/locale/id'
+
+dayjs.locale('id')
 
 const allData = ref([])
 const copiedDate = ref(null)
@@ -95,7 +98,7 @@ const formatTime = (dateString) => {
 }
 
 const formatDateHeader = (dateString) => {
-  return dayjs(dateString).format('DD/MM/YYYY')
+  return dayjs(dateString).format('DD MMMM YYYY')
 }
 
 // Group data by YYYY-MM-DD
