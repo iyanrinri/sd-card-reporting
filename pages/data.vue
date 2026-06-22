@@ -98,7 +98,7 @@ const formatTime = (dateString) => {
 }
 
 const formatDateHeader = (dateString) => {
-  return dayjs(dateString).format('DD MMMM YYYY')
+  return dayjs(dateString).format('dddd, DD MMMM YYYY (DD/MM/YYYY)')
 }
 
 // Group data by YYYY-MM-DD
