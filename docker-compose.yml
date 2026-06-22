@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "${HOST_PORT:-3002}:3000"
     volumes:
       # Mount the sqlite database file outside the container to persist it
       - ./prisma/dev.db:/app/prisma/dev.db
