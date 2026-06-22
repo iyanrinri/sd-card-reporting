@@ -28,7 +28,7 @@
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-2">Quantity</label>
-          <input type="number" v-model="form.quantity" class="input-field" placeholder="Masukkan jumlah barang" required min="1" />
+          <input type="number" v-model="form.quantity" class="input-field" placeholder="Masukkan jumlah SD Cards yang di serahkan" required min="1" />
         </div>
 
         <div>
