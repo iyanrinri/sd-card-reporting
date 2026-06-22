@@ -39,10 +39,6 @@
         <button type="submit" class="btn-primary" :disabled="isSubmitting">
           {{ isSubmitting ? 'Submitting...' : 'Submit Data' }}
         </button>
-
-        <div v-if="successMsg" class="p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm mt-4 transition-all">
-          {{ successMsg }}
-        </div>
       </form>
     </div>
   </div>
@@ -64,7 +60,6 @@ const receiverName = ref('Loading...')
 const shiftData = ref(null)
 
 const isSubmitting = ref(false)
-const successMsg = ref('')
 
 const fetchSenders = async () => {
   try {
@@ -140,7 +135,6 @@ const hideSuggestions = () => {
 
 const submitForm = async () => {
   isSubmitting.value = true
-  successMsg.value = ''
   try {
     await $fetch('/api/logistics', {
       method: 'POST',
@@ -151,19 +145,11 @@ const submitForm = async () => {
         date: form.value.date
       }
     })
-    successMsg.value = 'Data berhasil disimpan!'
     
-    // Refresh senders list
-    await fetchSenders()
-
-    form.value.senderName = ''
-    form.value.quantity = ''
-    form.value.date = dayjs().format('YYYY-MM-DDTHH:mm')
-    calculateReceiver()
-    setTimeout(() => successMsg.value = '', 3000)
+    // Redirect to success page
+    await navigateTo('/success')
   } catch (error) {
     alert('Terjadi kesalahan saat menyimpan data.')
-  } finally {
     isSubmitting.value = false
   }
 }
