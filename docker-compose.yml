@@ -8,7 +8,7 @@ services:
     ports:
       - "${HOST_PORT:-3002}:3000"
     volumes:
-      # Mount the sqlite database file outside the container to persist it
-      - ./prisma/dev.db:/app/prisma/dev.db
+      # Mount the entire prisma directory to allow SQLite to create journal files safely
+      - ./prisma:/app/prisma
     environment:
       - NODE_ENV=production
