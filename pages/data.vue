@@ -148,12 +148,27 @@ const copyRows = async (dateKey, items) => {
 
   const formattedDate = dayjs(dateKey).format('DD/MM/YYYY')
   
-  let rowsText = `${formattedDate} - Detail Laporan\n\n`
+  let rowsText = ''
   
-  sortedItems.forEach(item => {
-    const time = dayjs(item.createdAt).format('HH:mm')
+  sortedItems.forEach((item, index) => {
+    // Round time to nearest hour
+    const created = dayjs(item.createdAt)
+    const roundedTime = created.minute() >= 30 
+      ? created.add(1, 'hour').startOf('hour') 
+      : created.startOf('hour')
+    
+    const timeStr = roundedTime.format('HH:00')
     const emptyStr = item.emptyQuantity !== null ? item.emptyQuantity : '-'
-    rowsText += `[${time}] Sender: ${item.senderName} | Receiver: ${item.receiverName} | Qty: ${item.quantity} | Empty: ${emptyStr}\n`
+
+    rowsText += `${formattedDate} ${timeStr} - Tech-> Logistic\n`
+    rowsText += `Sender: ${item.senderName}\n`
+    rowsText += `Receiver: ${item.receiverName}\n`
+    rowsText += `Qty: ${item.quantity}\n`
+    rowsText += `Empty: ${emptyStr}`
+    
+    if (index < sortedItems.length - 1) {
+      rowsText += '\n\n'
+    }
   })
 
   try {
