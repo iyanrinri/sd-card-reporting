@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-slate-900 text-white min-h-screen font-sans;
+}
+
+.glass-panel {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl;
+}
+
+.input-field {
+  @apply w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
+}
+
+.btn-primary {
+  @apply w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-[0.98];
+}
