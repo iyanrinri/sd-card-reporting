@@ -12,6 +12,7 @@ datasource db {
 
 model DeliveryRecord {
   id               Int      @id @default(autoincrement())
+  type             String?  @default("Business")
   senderName       String
   receiverName     String
   quantity         Int

@@ -37,6 +37,7 @@
               <thead>
                 <tr class="bg-slate-900/40 text-slate-400 uppercase tracking-wider text-xs border-b border-slate-700/50">
                   <th class="p-3 font-medium">Jam</th>
+                  <th class="p-3 font-medium">Tipe</th>
                   <th class="p-3 font-medium">Sender</th>
                   <th class="p-3 font-medium">Receiver</th>
                   <th class="p-3 font-medium text-center">Qty</th>
@@ -54,6 +55,13 @@
                   </td>
                   <td class="p-3 text-slate-400" v-else>
                     {{ formatTime(item.createdAt) }}
+                  </td>
+
+                  <td class="p-3 font-medium text-slate-200" v-if="editingId === item.id">
+                    <input type="text" v-model="editForm.type" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200" />
+                  </td>
+                  <td class="p-3 font-medium text-slate-200" v-else>
+                    {{ item.type || 'Business' }}
                   </td>
 
                   <td class="p-3 font-medium text-slate-200" v-if="editingId === item.id">
@@ -144,6 +152,7 @@ const copiedRowsDate = ref(null)
 
 const editingId = ref(null)
 const editForm = ref({
+  type: '',
   senderName: '',
   receiverName: '',
   quantity: '',
@@ -167,6 +176,7 @@ onMounted(() => {
 const startEdit = (item) => {
   editingId.value = item.id
   editForm.value = {
+    type: item.type || 'Business',
     senderName: item.senderName,
     receiverName: item.receiverName,
     quantity: item.quantity,
@@ -246,7 +256,7 @@ const copySummary = async (dateKey, items) => {
 
   const formattedDate = dayjs(dateKey).format('DD/MM/YYYY')
 
-  const summaryText = `${formattedDate} - Tech-> Logistic
+  const summaryText = `${formattedDate} - Logistic -> Tech
 Sender: ${latestSender}
 Receiver: ${latestReceiver}
 Qty: ${totalQty}
@@ -273,25 +283,33 @@ const copyRows = async (dateKey, items) => {
   let rowsText = ''
   
   sortedItems.forEach((item, index) => {
-    // Round time to nearest hour
-    const created = dayjs(item.createdAt)
-    const roundedTime = created.minute() >= 30 
-      ? created.add(1, 'hour').startOf('hour') 
-      : created.startOf('hour')
+    // Round time to nearest hour or just keep format
+    // Based on user request, there's no time in the output
+    // Format:
+    // 23/06/2026 - Logistic -> Tech
+    // Jakarta - Cibubur - Ext Staffinc
+    // Sender: Aris
+    // Receiver: Angga
+    // Qty: 21
+    // Empty: 0
+    // ================
     
-    const timeStr = roundedTime.format('HH:00')
-    const emptyStr = item.emptyQuantity !== null ? item.emptyQuantity : '-'
-    const uploadedStr = item.uploadedQuantity !== null ? item.uploadedQuantity : '-'
+    const emptyStr = item.emptyQuantity !== null ? item.emptyQuantity : '0'
+    const typeStr = item.type || 'Business'
 
-    rowsText += `${formattedDate} ${timeStr} - Tech-> Logistic\n`
+    rowsText += `${formattedDate} - Logistic -> Tech\n`
+    rowsText += `Jakarta - Cibubur - ${typeStr}\n`
     rowsText += `Sender: ${item.senderName}\n`
     rowsText += `Receiver: ${item.receiverName}\n`
     rowsText += `Qty: ${item.quantity}\n`
-    rowsText += `Empty: ${emptyStr}\n`
-    rowsText += `Uploaded: ${uploadedStr}`
+    rowsText += `Empty: ${emptyStr}`
     
     if (index < sortedItems.length - 1) {
-      rowsText += '\n\n'
+      rowsText += '\n================\n'
+    } else {
+      // Also add separator at the very end to match user's exact format structure if preferred,
+      // but the user only showed separators between/after.
+      rowsText += '\n================'
     }
   })
 

@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
 
     const newRecord = await prisma.deliveryRecord.create({
       data: {
+        type: body.type || 'Business',
         senderName: body.senderName,
         receiverName: body.receiverName,
         quantity: Number(body.quantity),

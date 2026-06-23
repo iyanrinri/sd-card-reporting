@@ -14,6 +14,16 @@
           <input type="datetime-local" v-model="form.date" class="input-field" required @change="calculateReceiver" />
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Tipe / Location</label>
+          <input type="text" v-model="form.type" list="type-suggestions" class="input-field" placeholder="Pilih atau ketik tipe (mis: Business, Ext Staffinc)" required />
+          <datalist id="type-suggestions">
+            <option value="Business"></option>
+            <option value="Ext Staffinc"></option>
+            <option value="Ext MyRobins"></option>
+          </datalist>
+        </div>
+
         <div class="relative">
           <label class="block text-sm font-medium text-slate-300 mb-2">Sender Name</label>
           <input type="text" v-model="form.senderName" class="input-field" placeholder="Masukkan nama pengirim" required autocomplete="off" @focus="showSuggestions = true" @blur="hideSuggestions" />
@@ -50,6 +60,7 @@ import dayjs from 'dayjs'
 
 const form = ref({
   date: '',
+  type: 'Business',
   senderName: '',
   quantity: ''
 })
@@ -139,6 +150,7 @@ const submitForm = async () => {
     await $fetch('/api/logistics', {
       method: 'POST',
       body: {
+        type: form.value.type,
         senderName: form.value.senderName,
         receiverName: receiverName.value,
         quantity: form.value.quantity,

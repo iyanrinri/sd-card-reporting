@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
     if (!currentRecord) throw createError({ statusCode: 404, statusMessage: 'Not found' })
 
     const dataToUpdate: any = {}
+    if (body.type !== undefined) dataToUpdate.type = body.type
     if (body.senderName !== undefined) dataToUpdate.senderName = body.senderName
     if (body.receiverName !== undefined) dataToUpdate.receiverName = body.receiverName
     if (body.quantity !== undefined) dataToUpdate.quantity = Number(body.quantity)
