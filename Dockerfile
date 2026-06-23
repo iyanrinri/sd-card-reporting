@@ -14,4 +14,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["node", ".output/server/index.mjs"]
+CMD npx prisma db push && node .output/server/index.mjs
