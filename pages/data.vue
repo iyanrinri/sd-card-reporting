@@ -42,21 +42,74 @@
                   <th class="p-3 font-medium text-center">Qty</th>
                   <th class="p-3 font-medium text-center">Empty</th>
                   <th class="p-3 font-medium">Status</th>
+                  <th class="p-3 font-medium text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-700/30">
                 <tr v-for="item in items" :key="item.id" class="hover:bg-slate-800/50 transition-colors">
-                  <td class="p-3 text-slate-400">{{ formatTime(item.createdAt) }}</td>
-                  <td class="p-3 font-medium text-slate-200">{{ item.senderName }}</td>
-                  <td class="p-3 text-slate-300">{{ item.receiverName }}</td>
-                  <td class="p-3 text-center font-mono bg-slate-900/30">{{ item.quantity }}</td>
-                  <td class="p-3 text-center font-mono">
+                  <!-- Action Buttons / Edit Mode -->
+                  <td class="p-3 text-slate-400" v-if="editingId === item.id">
+                    {{ formatTime(item.createdAt) }}
+                  </td>
+                  <td class="p-3 text-slate-400" v-else>
+                    {{ formatTime(item.createdAt) }}
+                  </td>
+
+                  <td class="p-3 font-medium text-slate-200" v-if="editingId === item.id">
+                    <input type="text" v-model="editForm.senderName" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200" />
+                  </td>
+                  <td class="p-3 font-medium text-slate-200" v-else>
+                    {{ item.senderName }}
+                  </td>
+
+                  <td class="p-3 text-slate-300" v-if="editingId === item.id">
+                    <input type="text" v-model="editForm.receiverName" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200" />
+                  </td>
+                  <td class="p-3 text-slate-300" v-else>
+                    {{ item.receiverName }}
+                  </td>
+
+                  <td class="p-3 text-center font-mono bg-slate-900/30" v-if="editingId === item.id">
+                    <input type="number" v-model="editForm.quantity" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 text-center" />
+                  </td>
+                  <td class="p-3 text-center font-mono bg-slate-900/30" v-else>
+                    {{ item.quantity }}
+                  </td>
+
+                  <td class="p-3 text-center font-mono" v-if="editingId === item.id">
+                    <input type="number" v-model="editForm.emptyQuantity" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 text-center" placeholder="-" />
+                  </td>
+                  <td class="p-3 text-center font-mono" v-else>
                     <span v-if="item.emptyQuantity !== null" class="text-emerald-400">{{ item.emptyQuantity }}</span>
                     <span v-else class="text-slate-500">-</span>
                   </td>
-                  <td class="p-3">
+
+                  <td class="p-3" v-if="editingId === item.id">
+                    <!-- Status is read-only or auto updated -->
+                    <span class="text-slate-500 text-xs">Auto</span>
+                  </td>
+                  <td class="p-3" v-else>
                     <span v-if="item.status === 'Completed'" class="text-emerald-400 text-xs font-medium">Completed</span>
                     <span v-else class="text-yellow-400 text-xs font-medium">Pending</span>
+                  </td>
+
+                  <td class="p-3 text-right">
+                    <div v-if="editingId === item.id" class="flex gap-2 justify-end">
+                      <button @click="saveEdit(item.id)" class="text-emerald-400 hover:text-emerald-300 text-xs font-medium">Save</button>
+                      <button @click="cancelEdit()" class="text-slate-400 hover:text-slate-300 text-xs font-medium">Cancel</button>
+                    </div>
+                    <div v-else class="flex gap-3 justify-end">
+                      <button @click="startEdit(item)" class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button @click="deleteItem(item.id)" class="text-red-400 hover:text-red-300 transition-colors" title="Hapus">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -80,6 +133,14 @@ const allData = ref([])
 const copiedDate = ref(null)
 const copiedRowsDate = ref(null)
 
+const editingId = ref(null)
+const editForm = ref({
+  senderName: '',
+  receiverName: '',
+  quantity: '',
+  emptyQuantity: ''
+})
+
 const fetchData = async () => {
   try {
     const data = await $fetch('/api/logistics')
@@ -92,6 +153,50 @@ const fetchData = async () => {
 onMounted(() => {
   fetchData()
 })
+
+const startEdit = (item) => {
+  editingId.value = item.id
+  editForm.value = {
+    senderName: item.senderName,
+    receiverName: item.receiverName,
+    quantity: item.quantity,
+    emptyQuantity: item.emptyQuantity !== null ? item.emptyQuantity : ''
+  }
+}
+
+const cancelEdit = () => {
+  editingId.value = null
+}
+
+const saveEdit = async (id) => {
+  try {
+    const payload = { ...editForm.value }
+    // If emptyQuantity is empty string, convert to null
+    if (payload.emptyQuantity === '') payload.emptyQuantity = null
+    
+    await $fetch(`/api/logistics/${id}`, {
+      method: 'PUT',
+      body: payload
+    })
+    
+    editingId.value = null
+    fetchData() // Refresh data
+  } catch (error) {
+    alert('Failed to save edit')
+  }
+}
+
+const deleteItem = async (id) => {
+  if (!confirm('Yakin ingin menghapus data ini?')) return
+  try {
+    await $fetch(`/api/logistics/${id}`, {
+      method: 'DELETE'
+    })
+    fetchData() // Refresh data
+  } catch (error) {
+    alert('Failed to delete item')
+  }
+}
 
 const formatTime = (dateString) => {
   return dayjs(dateString).format('HH:mm')
