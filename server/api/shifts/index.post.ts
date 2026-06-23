@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
     })
     return shift
   } catch (error) {
+    console.error('Prisma Error:', error)
     throw createError({
       statusCode: 500,
       statusMessage: 'Error updating shift schedule'
