@@ -81,12 +81,34 @@
       <h2 class="text-2xl font-bold mb-4 text-slate-200">Daftar Sender Tersimpan</h2>
       <p class="text-sm text-slate-400 mb-6">Sender di bawah ini akan otomatis muncul sebagai *suggestion* di form logistik.</p>
       
-      <div class="flex flex-wrap gap-3">
-        <div v-for="sender in senders" :key="sender.id" class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-full text-sm flex items-center gap-2">
+      <div class="flex flex-col gap-3">
+        <div v-for="sender in senders" :key="sender.id" class="flex items-center gap-4 bg-slate-800/50 border border-slate-700 p-3 rounded-lg">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          {{ sender.name }}
+          
+          <div v-if="editingSenderId === sender.id" class="flex-1 flex gap-2">
+            <input type="text" v-model="editSenderName" class="input-field flex-1 py-1" />
+            <button @click="saveSender(sender.id)" class="text-emerald-400 hover:text-emerald-300 text-sm font-medium px-2">Save</button>
+            <button @click="cancelEditSender()" class="text-slate-400 hover:text-slate-300 text-sm font-medium px-2">Cancel</button>
+          </div>
+          
+          <div v-else class="flex-1 flex justify-between items-center">
+            <span class="font-medium text-slate-200">{{ sender.name }}</span>
+            <div class="flex gap-2">
+              <button @click="startEditSender(sender)" class="text-blue-400 hover:text-blue-300 p-1" title="Edit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button @click="deleteSender(sender.id)" class="text-red-400 hover:text-red-300 p-1" title="Hapus">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
-        <div v-if="senders.length === 0" class="text-slate-500 text-sm italic">
+        
+        <div v-if="senders.length === 0" class="text-slate-500 text-sm italic py-4">
           Belum ada sender yang tersimpan.
         </div>
       </div>
@@ -109,6 +131,45 @@ const isSavingShift = ref(false)
 const shiftMsg = ref('')
 const allShifts = ref([])
 const senders = ref([])
+
+const editingSenderId = ref(null)
+const editSenderName = ref('')
+
+const startEditSender = (sender) => {
+  editingSenderId.value = sender.id
+  editSenderName.value = sender.name
+}
+
+const cancelEditSender = () => {
+  editingSenderId.value = null
+  editSenderName.value = ''
+}
+
+const saveSender = async (id) => {
+  if (!editSenderName.value.trim()) return
+  try {
+    await $fetch(`/api/senders/${id}`, {
+      method: 'PUT',
+      body: { name: editSenderName.value }
+    })
+    editingSenderId.value = null
+    fetchSenders() // Refresh
+  } catch (error) {
+    alert('Failed to update sender')
+  }
+}
+
+const deleteSender = async (id) => {
+  if (!confirm('Yakin ingin menghapus sender ini?')) return
+  try {
+    await $fetch(`/api/senders/${id}`, {
+      method: 'DELETE'
+    })
+    fetchSenders() // Refresh
+  } catch (error) {
+    alert('Failed to delete sender')
+  }
+}
 
 const fetchShifts = async () => {
   try {
