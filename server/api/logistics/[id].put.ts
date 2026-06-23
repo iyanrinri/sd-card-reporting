@@ -12,13 +12,27 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const currentRecord = await prisma.deliveryRecord.findUnique({ where: { id: Number(id) } })
+    if (!currentRecord) throw createError({ statusCode: 404, statusMessage: 'Not found' })
+
     const dataToUpdate: any = {}
     if (body.senderName !== undefined) dataToUpdate.senderName = body.senderName
     if (body.receiverName !== undefined) dataToUpdate.receiverName = body.receiverName
     if (body.quantity !== undefined) dataToUpdate.quantity = Number(body.quantity)
     if (body.emptyQuantity !== undefined) {
-      dataToUpdate.emptyQuantity = body.emptyQuantity !== null ? Number(body.emptyQuantity) : null
+      dataToUpdate.emptyQuantity = body.emptyQuantity !== null && body.emptyQuantity !== '' ? Number(body.emptyQuantity) : null
+    }
+    if (body.uploadedQuantity !== undefined) {
+      dataToUpdate.uploadedQuantity = body.uploadedQuantity !== null && body.uploadedQuantity !== '' ? Number(body.uploadedQuantity) : null
+    }
+
+    const finalEmpty = dataToUpdate.emptyQuantity !== undefined ? dataToUpdate.emptyQuantity : currentRecord.emptyQuantity
+    const finalUploaded = dataToUpdate.uploadedQuantity !== undefined ? dataToUpdate.uploadedQuantity : currentRecord.uploadedQuantity
+
+    if (finalEmpty !== null && finalUploaded !== null) {
       dataToUpdate.status = 'Completed'
+    } else {
+      dataToUpdate.status = 'Pending'
     }
 
     const updatedRecord = await prisma.deliveryRecord.update({

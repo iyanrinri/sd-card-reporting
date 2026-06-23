@@ -11,13 +11,14 @@ datasource db {
 }
 
 model DeliveryRecord {
-  id            Int      @id @default(autoincrement())
-  senderName    String
-  receiverName  String
-  quantity      Int
-  emptyQuantity Int?
-  status        String   @default("Pending")
-  createdAt     DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  senderName       String
+  receiverName     String
+  quantity         Int
+  emptyQuantity    Int?
+  uploadedQuantity Int?
+  status           String   @default("Pending")
+  createdAt        DateTime @default(now())
 }
 
 model Sender {

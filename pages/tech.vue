@@ -28,10 +28,14 @@
           </div>
 
           <!-- Action Section -->
-          <form @submit.prevent="submitEmpty(item.id)" class="flex items-end gap-3 shrink-0">
+          <form @submit.prevent="submitData(item.id)" class="flex items-end gap-3 shrink-0">
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Jumlah Empty</label>
-              <input type="number" v-model="emptyInputs[item.id]" class="input-field py-2 w-32" placeholder="Cth: 5" required min="0" />
+              <input type="number" v-model="emptyInputs[item.id]" class="input-field py-2 w-24" placeholder="Cth: 5" min="0" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Jumlah Uploaded</label>
+              <input type="number" v-model="uploadedInputs[item.id]" class="input-field py-2 w-24" placeholder="Cth: 5" min="0" />
             </div>
             <button type="submit" class="btn-primary py-2 px-4 w-auto h-[42px]" :disabled="isSubmitting === item.id">
               {{ isSubmitting === item.id ? '...' : 'Save' }}
@@ -50,12 +54,17 @@ import dayjs from 'dayjs'
 
 const pendingData = ref([])
 const emptyInputs = ref({})
+const uploadedInputs = ref({})
 const isSubmitting = ref(null)
 
 const fetchData = async () => {
   try {
     const data = await $fetch('/api/logistics?status=Pending')
     pendingData.value = data
+    data.forEach(item => {
+      emptyInputs.value[item.id] = item.emptyQuantity !== null ? item.emptyQuantity : ''
+      uploadedInputs.value[item.id] = item.uploadedQuantity !== null ? item.uploadedQuantity : ''
+    })
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -69,17 +78,24 @@ const formatDate = (dateString) => {
   return dayjs(dateString).format('DD MMM YYYY, HH:mm')
 }
 
-const submitEmpty = async (id) => {
+const submitData = async (id) => {
   isSubmitting.value = id
   try {
-    await $fetch(`/api/logistics/${id}`, {
+    const payload = {}
+    if (emptyInputs.value[id] !== undefined) payload.emptyQuantity = emptyInputs.value[id]
+    if (uploadedInputs.value[id] !== undefined) payload.uploadedQuantity = uploadedInputs.value[id]
+
+    const updated = await $fetch(`/api/logistics/${id}`, {
       method: 'PUT',
-      body: {
-        emptyQuantity: emptyInputs.value[id]
-      }
+      body: payload
     })
-    // Remove from list
-    pendingData.value = pendingData.value.filter(item => item.id !== id)
+    
+    if (updated.status === 'Completed') {
+      pendingData.value = pendingData.value.filter(item => item.id !== id)
+    } else {
+      const idx = pendingData.value.findIndex(item => item.id === id)
+      if (idx !== -1) pendingData.value[idx] = updated
+    }
   } catch (error) {
     alert('Terjadi kesalahan saat menyimpan.')
   } finally {

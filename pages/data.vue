@@ -41,6 +41,7 @@
                   <th class="p-3 font-medium">Receiver</th>
                   <th class="p-3 font-medium text-center">Qty</th>
                   <th class="p-3 font-medium text-center">Empty</th>
+                  <th class="p-3 font-medium text-center">Upload</th>
                   <th class="p-3 font-medium">Status</th>
                   <th class="p-3 font-medium text-right">Aksi</th>
                 </tr>
@@ -81,6 +82,14 @@
                   </td>
                   <td class="p-3 text-center font-mono" v-else>
                     <span v-if="item.emptyQuantity !== null" class="text-emerald-400">{{ item.emptyQuantity }}</span>
+                    <span v-else class="text-slate-500">-</span>
+                  </td>
+
+                  <td class="p-3 text-center font-mono" v-if="editingId === item.id">
+                    <input type="number" v-model="editForm.uploadedQuantity" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 text-center" placeholder="-" />
+                  </td>
+                  <td class="p-3 text-center font-mono" v-else>
+                    <span v-if="item.uploadedQuantity !== null" class="text-blue-400">{{ item.uploadedQuantity }}</span>
                     <span v-else class="text-slate-500">-</span>
                   </td>
 
@@ -138,7 +147,8 @@ const editForm = ref({
   senderName: '',
   receiverName: '',
   quantity: '',
-  emptyQuantity: ''
+  emptyQuantity: '',
+  uploadedQuantity: ''
 })
 
 const fetchData = async () => {
@@ -160,7 +170,8 @@ const startEdit = (item) => {
     senderName: item.senderName,
     receiverName: item.receiverName,
     quantity: item.quantity,
-    emptyQuantity: item.emptyQuantity !== null ? item.emptyQuantity : ''
+    emptyQuantity: item.emptyQuantity !== null ? item.emptyQuantity : '',
+    uploadedQuantity: item.uploadedQuantity !== null ? item.uploadedQuantity : ''
   }
 }
 
@@ -173,6 +184,7 @@ const saveEdit = async (id) => {
     const payload = { ...editForm.value }
     // If emptyQuantity is empty string, convert to null
     if (payload.emptyQuantity === '') payload.emptyQuantity = null
+    if (payload.uploadedQuantity === '') payload.uploadedQuantity = null
     
     await $fetch(`/api/logistics/${id}`, {
       method: 'PUT',
@@ -230,6 +242,7 @@ const copySummary = async (dateKey, items) => {
   
   const totalQty = items.reduce((sum, item) => sum + (item.quantity || 0), 0)
   const totalEmpty = items.reduce((sum, item) => sum + (item.emptyQuantity || 0), 0)
+  const totalUploaded = items.reduce((sum, item) => sum + (item.uploadedQuantity || 0), 0)
 
   const formattedDate = dayjs(dateKey).format('DD/MM/YYYY')
 
@@ -237,7 +250,8 @@ const copySummary = async (dateKey, items) => {
 Sender: ${latestSender}
 Receiver: ${latestReceiver}
 Qty: ${totalQty}
-Empty: ${totalEmpty}`
+Empty: ${totalEmpty}
+Uploaded: ${totalUploaded}`
 
   try {
     await navigator.clipboard.writeText(summaryText)
@@ -267,12 +281,14 @@ const copyRows = async (dateKey, items) => {
     
     const timeStr = roundedTime.format('HH:00')
     const emptyStr = item.emptyQuantity !== null ? item.emptyQuantity : '-'
+    const uploadedStr = item.uploadedQuantity !== null ? item.uploadedQuantity : '-'
 
     rowsText += `${formattedDate} ${timeStr} - Tech-> Logistic\n`
     rowsText += `Sender: ${item.senderName}\n`
     rowsText += `Receiver: ${item.receiverName}\n`
     rowsText += `Qty: ${item.quantity}\n`
-    rowsText += `Empty: ${emptyStr}`
+    rowsText += `Empty: ${emptyStr}\n`
+    rowsText += `Uploaded: ${uploadedStr}`
     
     if (index < sortedItems.length - 1) {
       rowsText += '\n\n'
