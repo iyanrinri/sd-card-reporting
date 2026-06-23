@@ -254,13 +254,15 @@ const copySummary = async (dateKey, items) => {
   const totalEmpty = items.reduce((sum, item) => sum + (item.emptyQuantity || 0), 0)
   const totalUploaded = items.reduce((sum, item) => sum + (item.uploadedQuantity || 0), 0)
 
+  const totalEmptyStr = totalEmpty === 0 ? '-' : totalEmpty
+
   const formattedDate = dayjs(dateKey).format('DD/MM/YYYY')
 
   const summaryText = `${formattedDate} - Logistic -> Tech
 Sender: ${latestSender}
 Receiver: ${latestReceiver}
 Qty: ${totalQty}
-Empty: ${totalEmpty}
+Empty: ${totalEmptyStr}
 Uploaded: ${totalUploaded}`
 
   try {
@@ -294,7 +296,7 @@ const copyRows = async (dateKey, items) => {
     // Empty: 0
     // ================
     
-    const emptyStr = item.emptyQuantity !== null ? item.emptyQuantity : '0'
+    const emptyStr = (item.emptyQuantity === null || item.emptyQuantity === 0) ? '-' : item.emptyQuantity
     const typeStr = item.type || 'Business'
 
     rowsText += `${formattedDate} - Logistic -> Tech\n`
