@@ -154,7 +154,7 @@ const submitForm = async () => {
         senderName: form.value.senderName,
         receiverName: receiverName.value,
         quantity: form.value.quantity,
-        date: form.value.date
+        date: form.value.date ? dayjs(form.value.date).toISOString() : undefined
       }
     })
     
