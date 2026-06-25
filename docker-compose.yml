@@ -13,3 +13,4 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=file:/app/prisma/dev.db
+    restart: always
